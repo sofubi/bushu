@@ -1,0 +1,9 @@
+{
+    "coc.preferences.rootPatterns": [
+        ".git",
+        ".hg",
+        ".projections.json"
+    ],
+    "python.venvPath": "~/.virtualenvs",
+    "python.jediPath": "~/.virtualenvs/bushu/lib/python3.8/site-packages/jedi"
+}
