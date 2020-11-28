@@ -1,19 +1,20 @@
-from PIL import Image
-import requests
-from .manga import Manga
+from bushu.http.client import Client
+from bushu import Manga
+import os
 
 
 class Chapter:
     base_url = "https://mangadex.org/api/v2/chapter"
 
-    def __init__(self, identifier, chapter_number):
-        self.__manga = Manga(identifier)
+    def __init__(self, client: Client, identifier: str, chapter_number: int):
+        self.__manga = Manga(client, identifier)
         self.__chapter_number = chapter_number
         self.__server = None
         self.__pages = []
+        self.__client = client
 
-    def get_chapter_data(self):
-        request = requests.get(
+    def get_chapter_data(self) -> None:
+        request = self.__client.fetch(
             f"{self.base_url}/{self.__manga.all_chapters[self.__chapter_number]}"
         )
         response = request.json()['data']
@@ -21,10 +22,14 @@ class Chapter:
         for p in response['pages']:
             self.__pages.append(f"{self.__server}/{p}")
 
-    def open_page(self):
-        response = requests.get(
-            f"{self.__pages[0]}",
-            stream=True
-        )
-        img = Image.open(response.raw)
-        img.show()
+    def download_pages(self) -> None:
+        pages = self.__client.fetch_with_pool(self.__pages)
+        os.makedirs('',
+                    exist_ok=True)
+        for i, p in enumerate(pages):
+            with open(os.path.join(
+                '',
+                f'{i}.png'
+            ), 'wb'
+            ) as fd:
+                fd.write(p)
