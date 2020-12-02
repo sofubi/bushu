@@ -1,8 +1,10 @@
+from bushu.http.client import Client
 from bushu import Chapter
 
 if __name__ == "__main__":
-    chapter = Chapter(2048, 1)
+    client = Client('sofubi', 'TmLCY5VdRCqisj')
+    chapter = Chapter(client, 2048, 1)
     chapter.get_chapter_data()
-    chapter.open_page()
+    chapter.download_pages()
 else:
     print("Try again")
