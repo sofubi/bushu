@@ -9,6 +9,9 @@ requests = "*"
 [dev-packages]
 pylint = "*"
 jedi = "*"
+autopep8 = "*"
+ipykernel = "*"
+mypy = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"

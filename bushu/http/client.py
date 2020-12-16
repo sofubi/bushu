@@ -1,22 +1,27 @@
 import requests
+
+from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
 from requests.models import Response
-
+from requests.sessions import Session
 
 class Client:
-    session = None
+    session: Session = requests.Session()
 
-    def __init__(self, username: str, password: str) -> None:
-        self.session = requests.Session()
-        self.login(username, password)
-        self.pool = ThreadPoolExecutor(max_workers=5)
+    def __init__(self,
+                 username: Optional[str] = None,
+                 password: Optional[str] = None
+                 ) -> None:
+        self.__password = password
+        self.__pool = ThreadPoolExecutor(max_workers=5)
+        self.__username = username
 
-    def login(self, username: str, password: str) -> None:
+    def login(self) -> None:
         url = 'https://mangadex.org/ajax/actions.ajax.php?function=login'
         header = {'x-requested-with': 'XMLHttpRequest'}
         payload = {
-            'login_username': username,
-            'login_password': password
+            'login_username': self.__username,
+            'login_password': self.__password
         }
         self.session.post(
             url,
@@ -30,6 +35,6 @@ class Client:
 
     def fetch_with_pool(self, urls: list) -> list:
         pages = []
-        for page in self.pool.map(self.fetch, urls):
+        for page in self.__pool.map(self.fetch, urls):
             pages.append(page.content)
         return pages

@@ -1,4 +1,4 @@
-from .manga import *
-from .chapter import *
+from .book import *
+from .run import *
 
-__all__= ["Manga", "Chapter"]
+__all__ = ["Book"]
