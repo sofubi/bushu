@@ -10,8 +10,8 @@ class Book:
 
     def __init__(self,
                  client: Client,
-                 identifier: str,
-                 chapter_number: int,
+                 identifier: Optional[str] = None,
+                 chapter_number: Optional[int] = 1,
                  directory: Union[str, os.PathLike[str]] = os.getcwd()
                  ) -> None:
         self.__chapter_number = chapter_number
