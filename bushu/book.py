@@ -1,4 +1,5 @@
 import os
+from os.path import isdir
 
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from bushu.http.client import Client
@@ -18,7 +19,7 @@ class Book:
         self.__client = client
         self.__directory = directory
         self.__identifier = identifier
-        self.__pages: List[str] = []
+        self.__pages: Dict[int, list] = {}
         self.__all_chapters: Dict[int, Any] = {}
         self.__server: str = ''
 
@@ -60,30 +61,42 @@ class Book:
         chapters = {}
         for r in response:
             if r['language'] == 'gb':
-                chapters[int(r['chapter'])] = r['hash']
+                chapters[float(r['chapter'])] = r['hash']
         chapters = {
             k: v for k, v in sorted(chapters.items(), key=lambda item: item[0])
         }
         self.__all_chapters = chapters
 
-    def get_chapter_data(self) -> None:
+    def get_chapter_data(self, chapter: Optional[int] = None) -> None:
+        chapter_number = chapter if chapter is not None else self.__chapter_number
         request = self.__client.fetch(
             f'{self.base_chapter_url}/'
-            f'{self.__all_chapters[self.__chapter_number]}'
+            f'{self.__all_chapters[chapter_number]}'
         )
         response = request.json()['data']
         self.__server = f"{response['server']}{response['hash']}"
+        self.__pages[chapter_number] = []
         for p in response['pages']:
-            self.__pages.append(f"{self.__server}/{p}")
+            self.__pages[chapter_number].append(f"{self.__server}/{p}")
 
-    def download_pages(self) -> None:
-        pages = self.__client.fetch_with_pool(self.__pages)
-        os.makedirs(self.directory,
+    def download_chapter(self, chapter: Optional[int] = None) -> None:
+        chapter_number = chapter if chapter is not None else self.__chapter_number
+        pages = self.__client.fetch_with_pool(
+            self.__pages[chapter_number]
+        )
+        os.makedirs(os.path.join(self.directory,
+                                 f'{chapter_number}'),
                     exist_ok=True)
         for i, p in enumerate(pages):
             with open(os.path.join(
                 self.directory,
+                f'{chapter_number}',
                 f'{i}.png'
             ), 'wb'
             ) as fd:
                 fd.write(p)
+
+    def download_book(self) -> None:
+        for index, chapter in enumerate(self.__all_chapters):
+            self.get_chapter_data(index + 1)
+            self.download_chapter(index + 1)
